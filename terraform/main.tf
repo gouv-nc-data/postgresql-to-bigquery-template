@@ -26,7 +26,7 @@ module "project-factory" {
 
 resource "google_storage_bucket" "bucket" {
   project                     = module.project-factory.project_id
-  name                        = "bucket-template"
+  name                        = "bucket-${module.project-factory.project_id}"
   location                    = var.region
   storage_class               = "REGIONAL"
   uniform_bucket_level_access = true
