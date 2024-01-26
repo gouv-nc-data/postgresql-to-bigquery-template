@@ -1,6 +1,6 @@
 locals {
-  parent_folder_id = "658965356947" # production folder
-  postgresl_driver_remote_url      = "https://repo1.maven.org/maven2/org/postgresql/postgresql/42.2.6/postgresql-42.2.6.jar"
+  parent_folder_id            = "658965356947" # production folder
+  postgresl_driver_remote_url = "https://repo1.maven.org/maven2/org/postgresql/postgresql/42.2.6/postgresql-42.2.6.jar"
 }
 
 module "project-factory" {
