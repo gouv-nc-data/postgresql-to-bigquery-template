@@ -24,27 +24,27 @@ module "project-factory" {
   ]
 }
 
-resource "google_storage_bucket" "bucket" {
-  project                     = module.project-factory.project_id
-  name                        = "bucket-template"
-  location                    = var.region
-  storage_class               = "REGIONAL"
-  uniform_bucket_level_access = true
-}
+# resource "google_storage_bucket" "bucket" {
+#   project                     = module.project-factory.project_id
+#   name                        = "bucket-template"
+#   location                    = var.region
+#   storage_class               = "REGIONAL"
+#   uniform_bucket_level_access = true
+# }
 
-# driver postgresl
-data "http" "postgresql_driver" {
-  url = local.postgresl_driver_remote_url
-}
+# # driver postgresl
+# data "http" "postgresql_driver" {
+#   url = local.postgresl_driver_remote_url
+# }
 
-resource "local_sensitive_file" "postgresql_driver_local" {
-  content  = data.http.postgresql_driver.response_body
-  filename = "${path.module}/postgresql-42.2.6.jar"
-}
+# resource "local_sensitive_file" "postgresql_driver_local" {
+#   content  = data.http.postgresql_driver.response_body
+#   filename = "${path.module}/postgresql-42.2.6.jar"
+# }
 
-resource "google_storage_bucket_object" "postgresql_driver" {
-  name       = "postgresql-42.2.6.jar"
-  source     = "${path.module}/postgresql-42.2.6.jar"
-  bucket     = google_storage_bucket.bucket.name
-  depends_on = [local_sensitive_file.postgresql_driver_local]
-}
+# resource "google_storage_bucket_object" "postgresql_driver" {
+#   name       = "postgresql-42.2.6.jar"
+#   source     = "${path.module}/postgresql-42.2.6.jar"
+#   bucket     = google_storage_bucket.bucket.name
+#   depends_on = [local_sensitive_file.postgresql_driver_local]
+# }
