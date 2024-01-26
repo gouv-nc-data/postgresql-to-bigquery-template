@@ -1,8 +1,3 @@
-variable "project_name" {
-  type        = string
-  description = "nom du projet"
-}
-
 variable "direction" {
   type        = string
   description = "direction du projet"
