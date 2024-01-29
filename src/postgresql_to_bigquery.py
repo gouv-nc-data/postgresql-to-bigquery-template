@@ -32,7 +32,7 @@ def upload_table(spark: SparkSession, table_name: str, url: str, dataset: str, m
 
 def query_factory(schema: str, exclude: str = None) -> str:
     if exclude != "":
-        query = "SELECT table_name FROM information_schema.tables where table_schema = '%s' and table_name not in ('%s')" % (schema, exclude)
+        query = "SELECT table_name FROM information_schema.tables where table_schema = '%s' and table_name not in (%s)" % (schema, exclude)
     else:
         query = "SELECT table_name FROM information_schema.tables where table_schema = '%s'" % schema
     return query
