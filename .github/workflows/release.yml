@@ -29,5 +29,5 @@ jobs:
       with:
         path: 'src/postgresql_to_bigquery.py'
         destination: 'bucket-prj-dinum-data-templates-66aa'
-
+        gzip: false
     
