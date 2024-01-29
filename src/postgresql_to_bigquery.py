@@ -51,7 +51,7 @@ def run(spark: SparkSession, app_name: Optional[str], schema: str, url: str, dat
     get_logger(spark).info("migration de %s tables" % table_names.count())
 
     for table_name in table_names.collect():
-        upload_table(table_name, url, dataset, mode)
+        upload_table(spark, table_name, url, dataset, mode)
 
     get_logger(spark).info("fin migration")
 
