@@ -101,8 +101,9 @@ if __name__ == '__main__':
 
     spark = SparkSession.builder \
         .appName("PostgreSQL Migration with PySpark") \
-        .config("spark.jars", "gs://bucket-df-lsu/postgresql-42.2.6.jar,gs://bucket-df-lsu/spark-3.4-bigquery-0.35.1.jar") \
         .getOrCreate()
+        #.config("spark.jars", "gs://bucket-df-lsu/postgresql-42.2.6.jar,gs://bucket-df-lsu/spark-3.4-bigquery-0.35.1.jar") \
+        
 
     run(app_name="database transfert",
         spark=spark,
