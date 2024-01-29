@@ -20,8 +20,8 @@ def get_logger(self, spark: SparkSession) -> Logger:
 
 
 def upload_table(spark: SparkSession, table_name: str, url: str, dataset: str, mode: str):
-    get_logger(spark).info("migration table %s" % table_name['table_name'])
-
+    get_logger(spark).info("migration table %s (%s)" % (table_name['table_name'], url ))
+    Logger.info("migration table %s (%s)" % (table_name['table_name'], url ))
     df = spark.read.jdbc(url, table_name['table_name'], properties={"driver": "org.postgresql.Driver"})
 
     df.write \
