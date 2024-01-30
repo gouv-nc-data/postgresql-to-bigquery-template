@@ -24,6 +24,7 @@ module "project-factory" {
   }
   activate_apis = [
     "storage.googleapis.com",
+    "iamcredentials.googleapis.com",
   ]
 }
 
