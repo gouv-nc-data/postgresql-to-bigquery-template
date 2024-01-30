@@ -3,6 +3,8 @@ name: Build and package docker image
 on:
   push:
     branches: [ "main" ]
+    paths-ignore:
+      - 'terraform/**'
 env:
   PROJECT_ID: prj-dinum-data-templates-66aa
   REGION: europe-west1
