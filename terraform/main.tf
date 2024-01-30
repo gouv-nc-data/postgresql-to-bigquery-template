@@ -33,6 +33,7 @@ resource "google_storage_bucket" "bucket" {
 }
 
 resource "google_artifact_registry_repository" "template-repo" {
+  project       = module.project-factory.project_id
   location      = var.region
   repository_id = "template-repository"
   description   = "Dataflow template docker repository"
