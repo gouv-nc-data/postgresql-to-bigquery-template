@@ -3,6 +3,7 @@ locals {
   postgresl_driver_remote_url = "https://repo1.maven.org/maven2/org/postgresql/postgresql/42.2.6/postgresql-42.2.6.jar"
   service_account_roles = [
     "roles/artifactregistry.admin",
+    "roles/iam.serviceAccountTokenCreator"
   ]
 }
 
