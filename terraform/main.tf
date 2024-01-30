@@ -54,7 +54,7 @@ resource "google_artifact_registry_repository_iam_binding" "binding" {
 }
 
 resource "google_service_account" "service_account" {
-  account_id   = "sa-${module.project-factory.project_id}"
+  account_id   = "sa-for-github-action"
   display_name = "Service Account created by terraform for ${module.project-factory.project_id}"
   project      = module.project-factory.project_id
 }
