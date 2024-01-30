@@ -32,19 +32,19 @@ resource "google_storage_bucket" "bucket" {
   uniform_bucket_level_access = true
 }
 
-# driver postgresl
-data "http" "postgresql_driver" {
-  url = local.postgresl_driver_remote_url
+resource "google_artifact_registry_repository" "template-repo" {
+  location      = var.region
+  repository_id = "template-repository"
+  description   = "Dataflow template docker repository"
+  format        = "DOCKER"
 }
 
-resource "local_sensitive_file" "postgresql_driver_local" {
-  content  = data.http.postgresql_driver.response_body
-  filename = "${path.module}/postgresql-42.2.6.jar"
-}
-
-resource "google_storage_bucket_object" "postgresql_driver" {
-  name       = "postgresql-42.2.6.jar"
-  source     = "${path.module}/postgresql-42.2.6.jar"
-  bucket     = google_storage_bucket.bucket.name
-  depends_on = [local_sensitive_file.postgresql_driver_local]
+resource "google_artifact_registry_repository_iam_binding" "binding" {
+  project    = google_artifact_registry_repository.template-repo.project
+  location   = google_artifact_registry_repository.template-repo.location
+  repository = google_artifact_registry_repository.template-repo.name
+  role       = "roles/artifactregistry.reader"
+  members = [
+    "serviceAccount:sa-df-lsu@prj-denc-p-bq-3986.iam.gserviceaccount.com",
+  ]
 }
