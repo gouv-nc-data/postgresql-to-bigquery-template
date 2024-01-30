@@ -33,18 +33,25 @@ resource "google_storage_bucket" "bucket" {
 }
 
 # driver postgresl
-data "http" "postgresql_driver" {
-  url = local.postgresl_driver_remote_url
-}
+# data "http" "postgresql_driver" {
+#   url = local.postgresl_driver_remote_url
+# }
 
-resource "local_sensitive_file" "postgresql_driver_local" {
-  content  = data.http.postgresql_driver.response_body
-  filename = "${path.module}/postgresql-42.2.6.jar"
-}
+# resource "local_sensitive_file" "postgresql_driver_local" {
+#   content  = data.http.postgresql_driver.response_body
+#   filename = "${path.module}/postgresql-42.2.6.jar"
+# }
 
-resource "google_storage_bucket_object" "postgresql_driver" {
-  name       = "postgresql-42.2.6.jar"
-  source     = "${path.module}/postgresql-42.2.6.jar"
-  bucket     = google_storage_bucket.bucket.name
-  depends_on = [local_sensitive_file.postgresql_driver_local]
+# resource "google_storage_bucket_object" "postgresql_driver" {
+#   name       = "postgresql-42.2.6.jar"
+#   source     = "${path.module}/postgresql-42.2.6.jar"
+#   bucket     = google_storage_bucket.bucket.name
+#   depends_on = [local_sensitive_file.postgresql_driver_local]
+# }
+
+resource "google_artifact_registry_repository" "template-repo" {
+  location      = var.region
+  repository_id = "template-repository"
+  description   = "Dataflow template docker repository"
+  format        = "DOCKER"
 }
