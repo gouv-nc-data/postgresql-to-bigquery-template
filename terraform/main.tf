@@ -55,3 +55,13 @@ resource "google_artifact_registry_repository" "template-repo" {
   description   = "Dataflow template docker repository"
   format        = "DOCKER"
 }
+
+resource "google_artifact_registry_repository_iam_binding" "binding" {
+  project = google_artifact_registry_repository.template-repo.project
+  location = google_artifact_registry_repository.mtemplate-repo.location
+  repository = google_artifact_registry_repository.template-repo.name
+  role = "roles/artifactregistry.reader"
+  members = [
+    "serviceAccount:sa-df-lsu@prj-denc-p-bq-3986.iam.gserviceaccount.com",
+  ]
+}
