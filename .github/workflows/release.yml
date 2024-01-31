@@ -8,7 +8,7 @@ on:
 env:
   PROJECT_ID: prj-dinum-data-templates-66aa
   REGION: europe-west1
-  IMAGE_NAME: ${{ vars.GCP_REGION}}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID}}/template-repository/${{ vars.PROJECT_NAME }}-function
+  IMAGE_NAME: europe-west1-docker.pkg.dev/prj-dinum-data-templates-66aa/template-repository/df_postgresql_to_bigquery
 jobs:
   deploy:
     permissions:
@@ -32,7 +32,7 @@ jobs:
       - name: Log in to the Container registry
         uses: docker/login-action@v3
         with:
-          registry: ${{ vars.GCP_REGION}}-docker.pkg.dev
+          registry: europe-west1-docker.pkg.dev
           username: oauth2accesstoken
           password: ${{ steps.auth.outputs.access_token }}
 
