@@ -24,20 +24,27 @@ class TableUploader(beam.DoFn):
         df = pl.read_database_uri(query=query, uri=uri)
         logging.info("contenu récupéré")
         logging.info(df.head())
-        client = bigquery.Client()  # .from_service_account_json("credentials.json")
+        client = bigquery.Client()  # Pour execution en local bigquery.Client.from_service_account_json("credentials.json")
         with io.BytesIO() as stream:
             df.write_parquet(stream)
             stream.seek(0)
             job = client.load_table_from_file(
                 stream,
                 destination='%s.%s' % (dataset, element[0]),
-                # project='prj-dinum-p-exp-mtn-711a',
                 job_config=bigquery.LoadJobConfig(
                     source_format=bigquery.SourceFormat.PARQUET,
                 ),
             )
         print(job.result())
         return []
+
+
+def query_factory(schema: str, exclude: str = None) -> str:
+    if exclude != "":
+        query = "SELECT table_name FROM information_schema.tables where table_schema = '%s' and table_name not in (%s)" % (schema, exclude)
+    else:
+        query = "SELECT table_name FROM information_schema.tables where table_schema = '%s'" % schema
+    return query
 
 
 def run(
@@ -47,7 +54,7 @@ def run(
     creds = url.split("?user=")
     uri = creds[0]
     username, password = creds[1].split("&password=")
-    query = "SELECT table_name FROM information_schema.tables where table_schema = '%s'" % schema
+    query = query_factory(schema, exclude)
     print(query)
     with beam.Pipeline(options=beam_options) as pipeline:
         tables = pipeline | 'Create table list' >> ReadFromJdbc(
@@ -57,8 +64,8 @@ def run(
                             username=username,
                             password=password,
                             table_name=""
-                        )                           
-        tables | 'traitement de chaques tables' >> beam.ParDo(TableUploader(url, dataset)) # 
+                        )
+        tables | 'traitement de chaques tables' >> beam.ParDo(TableUploader(url, dataset))
         print(tables)
 
 
@@ -109,7 +116,7 @@ if __name__ == "__main__":
     logging.getLogger().setLevel(logging.INFO)
 
     parser = argparse.ArgumentParser()
-    
+
     beam_options = PipelineOptions()
     args = beam_options.view_as(MyOptions)
 
