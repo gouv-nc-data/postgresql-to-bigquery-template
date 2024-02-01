@@ -43,6 +43,11 @@ class TableUploader(beam.DoFn):
         return []
 
 
+class TableReader(beam.DoFn):
+    def process(self, element):
+        pass
+
+
 def query_factory(schema: str, exclude: str = None) -> str:
     if exclude != "":
         query = "SELECT table_name FROM information_schema.tables where table_schema = '%s' and table_name not in (%s)" % (schema, exclude)
@@ -69,8 +74,17 @@ def run(
                             password=password,
                             table_name=""
                         )
-        tables | 'traitement de chaques tables' >> beam.ParDo(TableUploader(url, dataset))
-        print(tables)
+        for table in tables:
+            pipeline | ReadFromJdbc(
+                            driver_class_name='org.postgresql.Driver',
+                            jdbc_url='jdbc:%s' % uri,
+                            username=username,
+                            password=password,
+                            table_name=table
+                     )
+
+        # tables | 'traitement de chaques tables' >> beam.ParDo(TableUploader(url, dataset))
+        # print(tables)
 
 
 class MyOptions(PipelineOptions):
