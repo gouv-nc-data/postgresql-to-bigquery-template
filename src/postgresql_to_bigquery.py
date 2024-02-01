@@ -17,7 +17,7 @@ class TableUploader(beam.DoFn):
         from google.cloud import bigquery
         import io
         import logging
-        import pandas_gbq
+
         logging.info("traitement de la table %s" % element)
         uri = self.uri
         dataset = self.dataset
@@ -25,19 +25,18 @@ class TableUploader(beam.DoFn):
         df = pl.read_database_uri(query=query, uri=uri)
         logging.info("contenu récupéré")
         logging.info(df.head())
-        pandas_gbq.to_gbq(df.to_pandas(), '%s.%s' % (dataset, element[0]))
-        # client = bigquery.Client()  # Pour execution en local bigquery.Client.from_service_account_json("credentials.json")
-        # with io.BytesIO() as stream:
-        #     df.write_parquet(stream)
-        #     stream.seek(0)
-        #     job = client.load_table_from_file(
-        #         stream,
-        #         destination='%s.%s' % (dataset, element[0]),
-        #         job_config=bigquery.LoadJobConfig(
-        #             source_format=bigquery.SourceFormat.PARQUET,
-        #         ),
-        #     )
-        # print(job.result())
+        client = bigquery.Client()  # Pour execution en local bigquery.Client.from_service_account_json("credentials.json")
+        with io.BytesIO() as stream:
+            df.write_avro(stream)
+            stream.seek(0)
+            job = client.load_table_from_file(
+                stream,
+                destination='%s.%s' % (dataset, element[0]),
+                job_config=bigquery.LoadJobConfig(
+                    source_format=bigquery.SourceFormat.AVRO,
+                ),
+            )
+        print(job.result())
         return []
 
 
