@@ -27,13 +27,16 @@ class TableUploader(beam.DoFn):
         logging.info(df.head())
         client = bigquery.Client()  # Pour execution en local bigquery.Client.from_service_account_json("credentials.json")
         with io.BytesIO() as stream:
-            df.write_avro(stream)
+            df.write_parquet(stream,
+                             use_pyarrow=True,
+                             pyarrow_options={"allow_truncated_timestamps": True,
+                                              "coerce_timestamps": "ms"})
             stream.seek(0)
             job = client.load_table_from_file(
                 stream,
                 destination='%s.%s' % (dataset, element[0]),
                 job_config=bigquery.LoadJobConfig(
-                    source_format=bigquery.SourceFormat.AVRO,
+                    source_format=bigquery.SourceFormat.PARQUET,
                 ),
             )
         print(job.result())

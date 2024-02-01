@@ -2,4 +2,4 @@ apache-beam[gcp]>=2.53.0
 polars
 connectorx
 google-cloud-bigquery
-pandas_gbq
+pyarrow
