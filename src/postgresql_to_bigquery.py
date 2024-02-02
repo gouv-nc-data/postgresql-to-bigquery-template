@@ -15,7 +15,7 @@ class TableUploader(beam.DoFn):
         from google.cloud import bigquery
         import io
 
-        print("TableUpload.process(%s)" % element.table_name)
+        print("TableUpload.process(%s)" % element["table_name"])
         dataset = self.dataset
         client = bigquery.Client()  #.from_service_account_json("credentials.json") # Pour execution en local bigquery.Client
         with io.BytesIO() as stream:
