@@ -6,6 +6,12 @@ from apache_beam.io.jdbc import ReadFromJdbc
 import logging
 
 
+class TableInfo:
+    def __init__(self, table_name, df):
+        self.table_name = table_name
+        self.df = df
+
+
 class TableUploader(beam.DoFn):
 
     def __init__(self, dataset):
@@ -49,7 +55,7 @@ class TableReader(beam.DoFn):
     def process(self, element):
         import polars as pl
         import logging
-        
+
         class TableInfo:
             def __init__(self, table_name, df):
                 self.table_name = table_name
