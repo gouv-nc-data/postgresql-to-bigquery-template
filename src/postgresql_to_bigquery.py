@@ -6,12 +6,6 @@ from apache_beam.io.jdbc import ReadFromJdbc
 import logging
 
 
-class TableInfo:
-    def __init__(self, table_name, df):
-        self.table_name = table_name
-        self.df = df
-
-
 class TableUploader(beam.DoFn):
 
     def __init__(self, dataset):
@@ -21,16 +15,11 @@ class TableUploader(beam.DoFn):
         from google.cloud import bigquery
         import io
 
-        class TableInfo:
-            def __init__(self, table_name, df):
-                self.table_name = table_name
-                self.df = df
-
         print("TableUpload.process(%s)" % element.table_name)
         dataset = self.dataset
         client = bigquery.Client()  #.from_service_account_json("credentials.json") # Pour execution en local bigquery.Client
         with io.BytesIO() as stream:
-            df = element.df
+            df = element["df"]
             df.write_parquet(stream,
                              use_pyarrow=True,
                              pyarrow_options={"allow_truncated_timestamps": True,
@@ -38,7 +27,7 @@ class TableUploader(beam.DoFn):
             stream.seek(0)
             job = client.load_table_from_file(
                 stream,
-                destination='%s.%s' % (dataset, "%s" % element.table_name),
+                destination='%s.%s' % (dataset, "%s" % element["table_name"]),
                 job_config=bigquery.LoadJobConfig(
                     source_format=bigquery.SourceFormat.PARQUET,
                 ),
@@ -56,11 +45,6 @@ class TableReader(beam.DoFn):
         import polars as pl
         import logging
 
-        class TableInfo:
-            def __init__(self, table_name, df):
-                self.table_name = table_name
-                self.df = df
-
         logging.info("traitement de la table %s" % element)
         uri = self.uri
         query = "select * from %s" % element[0]
@@ -68,7 +52,7 @@ class TableReader(beam.DoFn):
         logging.info("contenu récupéré")
         logging.info(df.head())
 
-        yield TableInfo(element, df)
+        yield {"table_name": element, "df": df}
 
 
 def query_factory(schema: str, exclude: str = None) -> str:
