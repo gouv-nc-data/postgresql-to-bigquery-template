@@ -8,25 +8,17 @@ import logging
 
 class TableUploader(beam.DoFn):
 
-    def __init__(self, uri, dataset):
+    def __init__(self, dataset):
         self.dataset = dataset
-        self.uri = uri
 
     def process(self, element):
-        import polars as pl
         from google.cloud import bigquery
         import io
-        import logging
-
-        logging.info("traitement de la table %s" % element)
-        uri = self.uri
+        print("TableUpload.process(%s)" % element.table_name)
         dataset = self.dataset
-        query = "select * from %s" % element[0]
-        df = pl.read_database_uri(query=query, uri=uri)
-        logging.info("contenu récupéré")
-        logging.info(df.head())
-        client = bigquery.Client()  # Pour execution en local bigquery.Client.from_service_account_json("credentials.json")
+        client = bigquery.Client()  #.from_service_account_json("credentials.json") # Pour execution en local bigquery.Client
         with io.BytesIO() as stream:
+            df = element.df
             df.write_parquet(stream,
                              use_pyarrow=True,
                              pyarrow_options={"allow_truncated_timestamps": True,
@@ -34,7 +26,7 @@ class TableUploader(beam.DoFn):
             stream.seek(0)
             job = client.load_table_from_file(
                 stream,
-                destination='%s.%s' % (dataset, element[0]),
+                destination='%s.%s' % (dataset, "%s" % element.table_name),
                 job_config=bigquery.LoadJobConfig(
                     source_format=bigquery.SourceFormat.PARQUET,
                 ),
@@ -43,9 +35,29 @@ class TableUploader(beam.DoFn):
         return []
 
 
+class TableInfo:
+    def __init__(self, table_name, df):
+        self.table_name = table_name
+        self.df = df
+
+
 class TableReader(beam.DoFn):
+
+    def __init__(self, uri):
+        self.uri = uri
+
     def process(self, element):
-        pass
+        import polars as pl
+        import logging
+
+        logging.info("traitement de la table %s" % element)
+        uri = self.uri
+        query = "select * from %s" % element[0]
+        df = pl.read_database_uri(query=query, uri=uri)
+        logging.info("contenu récupéré")
+        logging.info(df.head())
+
+        yield TableInfo(element, df)
 
 
 def query_factory(schema: str, exclude: str = None) -> str:
@@ -53,6 +65,7 @@ def query_factory(schema: str, exclude: str = None) -> str:
         query = "SELECT table_name FROM information_schema.tables where table_schema = '%s' and table_name not in (%s)" % (schema, exclude)
     else:
         query = "SELECT table_name FROM information_schema.tables where table_schema = '%s'" % schema
+    print(query)
     return query
 
 
@@ -66,25 +79,19 @@ def run(
     query = query_factory(schema, exclude)
     print(query)
     with beam.Pipeline(options=beam_options) as pipeline:
-        tables = pipeline | 'Create table list' >> ReadFromJdbc(
-                            query=query,
-                            driver_class_name='org.postgresql.Driver',
-                            jdbc_url='jdbc:%s' % uri,
-                            username=username,
-                            password=password,
-                            table_name=""
-                        )
-        for table in tables:
-            pipeline | ReadFromJdbc(
-                            driver_class_name='org.postgresql.Driver',
-                            jdbc_url='jdbc:%s' % uri,
-                            username=username,
-                            password=password,
-                            table_name=table
-                     )
+        result = (pipeline | 'Create table list' >> ReadFromJdbc(
+                                    query=query,
+                                    driver_class_name='org.postgresql.Driver',
+                                    jdbc_url='jdbc:%s' % uri,
+                                    username=username,
+                                    password=password,
+                                    table_name=""
+                                )
+                           | "Read jdbc tables" >> beam.ParDo(TableReader(url))
+                           | "Write to bigQuery" >> beam.ParDo(TableUploader(dataset))
+                  )
 
-        # tables | 'traitement de chaques tables' >> beam.ParDo(TableUploader(url, dataset))
-        # print(tables)
+        print(result)
 
 
 class MyOptions(PipelineOptions):
