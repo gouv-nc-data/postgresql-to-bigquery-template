@@ -14,6 +14,7 @@ class TableUploader(beam.DoFn):
     def process(self, element):
         from google.cloud import bigquery
         import io
+        import TableInfo
         print("TableUpload.process(%s)" % element.table_name)
         dataset = self.dataset
         client = bigquery.Client()  #.from_service_account_json("credentials.json") # Pour execution en local bigquery.Client
@@ -49,7 +50,7 @@ class TableReader(beam.DoFn):
     def process(self, element):
         import polars as pl
         import logging
-
+        import TableInfo
         logging.info("traitement de la table %s" % element)
         uri = self.uri
         query = "select * from %s" % element[0]
