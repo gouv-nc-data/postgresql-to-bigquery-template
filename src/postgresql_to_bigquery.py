@@ -33,7 +33,7 @@ class TableUploader(beam.DoFn):
                 ),
             )
         print(job.result())
-        return []
+        yield [job.result()]
 
 
 class TableReader(beam.DoFn):
