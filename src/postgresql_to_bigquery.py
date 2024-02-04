@@ -33,7 +33,7 @@ class TableUploader(beam.DoFn):
                 ),
             )
         print(job.result())
-        yield [job.result()]
+        yield "###### TableUpload.process(%s) terminé #####" % element["table_name"]
 
 
 class TableReader(beam.DoFn):
