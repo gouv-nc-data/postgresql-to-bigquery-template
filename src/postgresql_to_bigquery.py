@@ -83,7 +83,7 @@ def run(
                                     table_name=""
                                 )
                            | "Read jdbc tables" >> beam.ParDo(TableReader(url))
-                           | "Write to bigQuery" >> beam.ParDo(TableUploader(dataset))
+                           #| "Write to bigQuery" >> beam.ParDo(TableUploader(dataset))
                   )
 
         print(result)
