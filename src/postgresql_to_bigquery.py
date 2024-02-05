@@ -46,11 +46,10 @@ class TableReader(beam.DoFn):
         import logging
 
         logging.info("traitement de la table %s" % element)
-        # uri = self.uri
-        # query = "select * from %s" % element[0]
-        # df = pl.read_database_uri(query=query, uri=uri)
-        # logging.info("contenu récupéré")
-        # logging.info(df.head())
+        query = "select * from %s" % element[0]
+        df = pl.read_database_uri(query=query, uri=self.uri)
+        logging.info("contenu récupéré")
+        logging.info(df.head())
 
         yield ""# {"table_name": element, "df": df}
 
@@ -81,7 +80,7 @@ def run(
                                     username=username,
                                     password=password,
                                     table_name=""
-                                )
+                                ) 
                            | "Read jdbc tables" >> beam.ParDo(TableReader(url))
                            #| "Write to bigQuery" >> beam.ParDo(TableUploader(dataset))
                   )
