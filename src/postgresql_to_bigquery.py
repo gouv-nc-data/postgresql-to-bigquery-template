@@ -46,11 +46,11 @@ class TableReader(beam.DoFn):
         import logging
 
         logging.info("traitement de la table %s" % element)
-        uri = self.uri
-        query = "select * from %s" % element[0]
-        df = pl.read_database_uri(query=query, uri=uri)
-        logging.info("contenu récupéré")
-        logging.info(df.head())
+        # uri = self.uri
+        # query = "select * from %s" % element[0]
+        # df = pl.read_database_uri(query=query, uri=uri)
+        # logging.info("contenu récupéré")
+        # logging.info(df.head())
 
         yield {"table_name": element, "df": df}
 
