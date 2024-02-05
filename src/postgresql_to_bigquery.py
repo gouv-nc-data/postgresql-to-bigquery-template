@@ -52,7 +52,7 @@ class TableReader(beam.DoFn):
         # logging.info("contenu récupéré")
         # logging.info(df.head())
 
-        yield {"table_name": element, "df": df}
+        yield ""# {"table_name": element, "df": df}
 
 
 def query_factory(schema: str, exclude: str = None) -> str:
