@@ -136,9 +136,9 @@ if __name__ == "__main__":
         required=False,
         default="",
         help='tables à exclure de la migration')
-    args, beam_args = parser.parse_args()
+    args, beam_args = parser.parse_known_args()
     beam_options = PipelineOptions(beam_args, save_main_session=True,
-                                   streaming=True, sdk_location="container")
+                                   streaming=False, sdk_location="container")
     #args = beam_options.view_as(MyOptions)
 
     run(
