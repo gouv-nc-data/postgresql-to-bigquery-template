@@ -135,8 +135,7 @@ if __name__ == "__main__":
     logging.getLogger().setLevel(logging.INFO)
 
     parser = argparse.ArgumentParser()
-
-    beam_options = PipelineOptions()
+    beam_options = PipelineOptions(save_main_session=True, streaming=True, sdk_location="container")
     args = beam_options.view_as(MyOptions)
 
     run(
