@@ -91,42 +91,7 @@ def run(
 class MyOptions(PipelineOptions):
     @classmethod
     def _add_argparse_args(cls, parser):
-        parser.add_argument(
-            '--jdbc-url',
-            type=str,
-            dest='jdbc_url',
-            required=True,
-            help='URL JDBC vers la bdd source')
-
-        parser.add_argument(
-            '--schema',
-            type=str,
-            dest='schema',
-            required=True,
-            help='schéma à migrer')
-
-        parser.add_argument(
-            '--dataset',
-            type=str,
-            dest='dataset',
-            required=True,
-            help='schéma à migrer')
-
-        parser.add_argument(
-            '--mode',
-            type=str,
-            dest='mode',
-            required=False,
-            default="overwrite",
-            help='schéma à migrer')
-
-        parser.add_argument(
-            '--exclude',
-            type=str,
-            dest='exclude',
-            required=False,
-            default="",
-            help='tables à exclure de la migration')
+        pass
 
 
 if __name__ == "__main__":
@@ -135,8 +100,46 @@ if __name__ == "__main__":
     logging.getLogger().setLevel(logging.INFO)
 
     parser = argparse.ArgumentParser()
-    beam_options = PipelineOptions(save_main_session=True, streaming=True, sdk_location="container")
-    args = beam_options.view_as(MyOptions)
+    parser.add_argument(
+            '--jdbc-url',
+            type=str,
+            dest='jdbc_url',
+            required=True,
+            help='URL JDBC vers la bdd source')
+
+    parser.add_argument(
+        '--schema',
+        type=str,
+        dest='schema',
+        required=True,
+        help='schéma à migrer')
+
+    parser.add_argument(
+        '--dataset',
+        type=str,
+        dest='dataset',
+        required=True,
+        help='schéma à migrer')
+
+    parser.add_argument(
+        '--mode',
+        type=str,
+        dest='mode',
+        required=False,
+        default="overwrite",
+        help='schéma à migrer')
+
+    parser.add_argument(
+        '--exclude',
+        type=str,
+        dest='exclude',
+        required=False,
+        default="",
+        help='tables à exclure de la migration')
+    args, beam_args = parser.parse_args()
+    beam_options = PipelineOptions(beam_args, save_main_session=True,
+                                   streaming=True, sdk_location="container")
+    #args = beam_options.view_as(MyOptions)
 
     run(
         schema=args.schema,
