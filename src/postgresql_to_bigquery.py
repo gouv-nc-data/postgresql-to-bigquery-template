@@ -37,24 +37,20 @@ class TableUploader(beam.DoFn):
 
 
 class TableReader(beam.DoFn):
-    INDEX_STATE = CombiningStateSpec('index', sum)
-
     def __init__(self, uri):
         self.uri = uri
 
-    def process(self, element, index=beam.DoFn.StateParam(INDEX_STATE)):
+    def process(self, element):
         import polars as pl
         import logging
-        unused_key, value = element
-        current_index = index.read()
-        logging.info("traitement de la table %s" % value)
-        query = "select * from %s" % value[0]
+
+        logging.info("traitement de la table %s" % element)
+        query = "select * from %s" % element[0]
         df = pl.read_database(query, self.uri)
         logging.info("contenu récupéré")
         logging.info(df.head())
 
-        yield ({"table_name": value, "df": df}, current_index)
-        index.add(1)
+        yield {"table_name": element, "df": df}
 
 
 def query_factory(schema: str, exclude: str = None) -> str:
