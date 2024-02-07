@@ -82,10 +82,10 @@ def run(
                                     table_name=""
                                 ) 
                            | "Read jdbc tables" >> beam.ParDo(TableReader(url))
-                           #| "Write to bigQuery" >> beam.ParDo(TableUploader(dataset))
+                           | "Write to bigQuery" >> beam.ParDo(TableUploader(dataset))
                   )
 
-        print(result)
+        #print(result)
 
 
 class MyOptions(PipelineOptions):
@@ -138,7 +138,7 @@ if __name__ == "__main__":
         help='tables à exclure de la migration')
     args, beam_args = parser.parse_known_args()
     pipeline_options = PipelineOptions(beam_args, save_main_session=True,
-                                   streaming=False, sdk_location="container")
+                                       streaming=False, sdk_location="container")
     beam_options = pipeline_options.view_as(GoogleCloudOptions)
     #args = beam_options.view_as(MyOptions)
 
@@ -149,4 +149,4 @@ if __name__ == "__main__":
         mode=args.mode,
         exclude=args.exclude,
         beam_options=beam_options,
-    )
+    ).waituntilfinish() 
