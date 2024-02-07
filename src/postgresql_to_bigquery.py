@@ -1,6 +1,6 @@
 from typing import Optional
 import apache_beam as beam
-from apache_beam.options.pipeline_options import PipelineOptions
+from apache_beam.options.pipeline_options import PipelineOptions, GoogleCloudOptions
 from apache_beam.io.jdbc import ReadFromJdbc
 
 import logging
@@ -137,8 +137,9 @@ if __name__ == "__main__":
         default="",
         help='tables à exclure de la migration')
     args, beam_args = parser.parse_known_args()
-    beam_options = PipelineOptions(beam_args, save_main_session=True,
+    pipeline_options = PipelineOptions(beam_args, save_main_session=True,
                                    streaming=False, sdk_location="container")
+    beam_options = pipeline_options.view_as(GoogleCloudOptions)
     #args = beam_options.view_as(MyOptions)
 
     run(
