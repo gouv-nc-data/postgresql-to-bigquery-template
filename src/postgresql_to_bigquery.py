@@ -79,7 +79,7 @@ def run(
                                     username=username,
                                     password=password,
                                     table_name=""
-                                ) 
+                                ).ToList()
                            #| "Read jdbc tables" >> beam.ParDo(TableReader(url))
                            #| "Write to bigQuery" >> beam.ParDo(TableUploader(dataset))
                   ) 
