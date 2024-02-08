@@ -62,7 +62,7 @@ def query_factory(schema: str, exclude: str = None) -> str:
     return query
 
 
-def get_tables_list(schema: str, uri: str, username, password, exclude: str = None) -> list:
+def get_tables_list(schema: str, uri: str, exclude: str = None) -> list:
     import polars as pl
     query = query_factory(schema, exclude)
     df = pl.read_database(query, uri)
