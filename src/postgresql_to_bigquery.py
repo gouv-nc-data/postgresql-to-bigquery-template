@@ -51,6 +51,49 @@ import typing
 #         logging.info(df.head())
 
 #         yield {"table_name": element, "df": df}
+from apache_beam.typehints.schemas import LogicalType
+
+
+@LogicalType.register_logical_type
+class db_bool(LogicalType):
+    def __init__(self, argument=""):
+        pass
+
+    @classmethod
+    def urn(cls):
+        return "beam:logical_type:javasdk_bit:v1"
+
+    @classmethod
+    def language_type(cls):
+        return bool
+
+    def to_language_type(self, value):
+        return bool(value)
+
+    def to_representation_type(self, value):
+        return bool(value)
+
+
+@LogicalType.register_logical_type
+class db_tmp(LogicalType):
+    def __init__(self, argument=""):
+        pass
+
+    @classmethod
+    def urn(cls):
+        return "beam:coder:pickled_python:v1"
+
+    @classmethod
+    def language_type(cls):
+        return str
+
+    def to_language_type(self, value):
+        print(value)
+        return str(value)
+
+    def to_representation_type(self, value):
+        print(value)
+        return str(value)
 
 
 def query_factory(schema: str, exclude: str = None) -> str:
@@ -95,26 +138,28 @@ def run(
         res = [
             (
                 pipeline | "List to pCollection %s" % table >> beam.Create([table])
-                         | "debug %s " % table >> beam.Map(logging.warn)
+                         | "debug %s " % table >> beam.Map(logging.info)
                          | 'ReadTable' >> ReadFromJdbc(
-                                                        query="select * from %s " % table,
                                                         driver_class_name='org.postgresql.Driver',
                                                         jdbc_url='jdbc:%s' % uri,
                                                         username=username,
                                                         password=password,
-                                                        table_name=table
+                                                        table_name="%s" % table
                                                        )
-                         | "res %s " % table >> beam.Map(logging.warn)
+                         | "res %s " % table >> beam.Map(logging.info)
             ) for table in tables
-        ] 
-       
-        #print(res)
-
-
-class MyOptions(PipelineOptions):
-    @classmethod
-    def _add_argparse_args(cls, parser):
-        pass
+        ]
+        #  ['country_language', 'country_flag', 'city', 'country']
+        # (pipeline | ReadFromJdbc(
+        #                             #query="select * from ",
+        #                             driver_class_name='org.postgresql.Driver',
+        #                             jdbc_url='jdbc:%s' % uri,
+        #                             username=username,
+        #                             password=password,
+        #                             table_name="country_language"
+        #                         )
+        #           #| "res" >> beam.Map(logging.warn)
+        #          )
 
 
 if __name__ == "__main__":
