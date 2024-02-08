@@ -4,7 +4,7 @@ from apache_beam.options.pipeline_options import PipelineOptions, GoogleCloudOpt
 from apache_beam.io.jdbc import ReadFromJdbc
 
 import logging
-
+import typing
 
 # class TableUploader(beam.DoFn):
 
@@ -94,19 +94,21 @@ def run(
         #           ) 
         res = [
             (
-                pipeline | beam.Create(tables)
+                pipeline | "List to pCollection %s" % table >> beam.Create([table])
+                         | "debug %s " % table >> beam.Map(logging.warn)
                          | 'ReadTable' >> ReadFromJdbc(
-                                    query="select * from %s " % table,
-                                    driver_class_name='org.postgresql.Driver',
-                                    jdbc_url='jdbc:%s' % uri,
-                                    username=username,
-                                    password=password,
-                                    table_name=""
-                                ) 
+                                                        query="select * from %s " % table,
+                                                        driver_class_name='org.postgresql.Driver',
+                                                        jdbc_url='jdbc:%s' % uri,
+                                                        username=username,
+                                                        password=password,
+                                                        table_name=table
+                                                       )
+                         | "res %s " % table >> beam.Map(logging.warn)
             ) for table in tables
         ] 
-
-        print(res)
+       
+        #print(res)
 
 
 class MyOptions(PipelineOptions):
@@ -171,4 +173,4 @@ if __name__ == "__main__":
         exclude=args.exclude,
         tables=tables,
         beam_options=beam_options,
-    ).waituntilfinish() 
+    )
