@@ -62,7 +62,7 @@ def query_factory(schema: str, exclude: str = None) -> str:
     return query
 
 
-def get_tables_list(schema: str, uri: str, exclude: str = None) -> list:
+def get_tables_list(schema: str, uri: str, username, password, exclude: str = None) -> list:
     import polars as pl
     query = query_factory(schema, exclude)
     df = pl.read_database(query, uri)
@@ -76,7 +76,7 @@ def run(
     creds = url.split("?user=")
     uri = creds[0]
     username, password = creds[1].split("&password=")
-    tables = get_tables_list(schema, uri, exclude)
+    tables = get_tables_list(schema, url, exclude)
     with beam.Pipeline(options=beam_options) as pipeline:
         # tables = (pipeline | 'Create table list' >> ReadFromJdbc(
         #                             query=query,
