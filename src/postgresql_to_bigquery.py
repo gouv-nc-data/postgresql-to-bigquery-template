@@ -6,51 +6,51 @@ from apache_beam.io.jdbc import ReadFromJdbc
 import logging
 
 
-class TableUploader(beam.DoFn):
+# class TableUploader(beam.DoFn):
 
-    def __init__(self, dataset):
-        self.dataset = dataset
+#     def __init__(self, dataset):
+#         self.dataset = dataset
 
-    def process(self, element):
-        from google.cloud import bigquery
-        import io
+#     def process(self, element):
+#         from google.cloud import bigquery
+#         import io
 
-        print("TableUpload.process(%s)" % element["table_name"])
-        dataset = self.dataset
-        client = bigquery.Client()  #.from_service_account_json("credentials.json") # Pour execution en local bigquery.Client
-        with io.BytesIO() as stream:
-            df = element["df"]
-            df.write_parquet(stream,
-                             use_pyarrow=True,
-                             pyarrow_options={"allow_truncated_timestamps": True,
-                                              "coerce_timestamps": "ms"})
-            stream.seek(0)
-            job = client.load_table_from_file(
-                stream,
-                destination='%s.%s' % (dataset, "%s" % element["table_name"]),
-                job_config=bigquery.LoadJobConfig(
-                    source_format=bigquery.SourceFormat.PARQUET,
-                ),
-            )
-        print(job.result())
-        yield "###### TableUpload.process(%s) terminé #####" % element["table_name"]
+#         print("TableUpload.process(%s)" % element["table_name"])
+#         dataset = self.dataset
+#         client = bigquery.Client()  #.from_service_account_json("credentials.json") # Pour execution en local bigquery.Client
+#         with io.BytesIO() as stream:
+#             df = element["df"]
+#             df.write_parquet(stream,
+#                              use_pyarrow=True,
+#                              pyarrow_options={"allow_truncated_timestamps": True,
+#                                               "coerce_timestamps": "ms"})
+#             stream.seek(0)
+#             job = client.load_table_from_file(
+#                 stream,
+#                 destination='%s.%s' % (dataset, "%s" % element["table_name"]),
+#                 job_config=bigquery.LoadJobConfig(
+#                     source_format=bigquery.SourceFormat.PARQUET,
+#                 ),
+#             )
+#         print(job.result())
+#         yield "###### TableUpload.process(%s) terminé #####" % element["table_name"]
 
 
-class TableReader(beam.DoFn):
-    def __init__(self, uri):
-        self.uri = uri
+# class TableReader(beam.DoFn):
+#     def __init__(self, uri):
+#         self.uri = uri
 
-    def process(self, element):
-        import polars as pl
-        import logging
+#     def process(self, element):
+#         import polars as pl
+#         import logging
 
-        logging.info("traitement de la table %s" % element)
-        query = "select * from %s" % element[0]
-        df = pl.read_database(query, self.uri)
-        logging.info("contenu récupéré")
-        logging.info(df.head())
+#         logging.info("traitement de la table %s" % element)
+#         query = "select * from %s" % element[0]
+#         df = pl.read_database(query, self.uri)
+#         logging.info("contenu récupéré")
+#         logging.info(df.head())
 
-        yield {"table_name": element, "df": df}
+#         yield {"table_name": element, "df": df}
 
 
 def query_factory(schema: str, exclude: str = None) -> str:
@@ -66,17 +66,19 @@ def get_tables_list(schema: str, uri: str, exclude: str = None) -> list:
     import polars as pl
     query = query_factory(schema, exclude)
     df = pl.read_database(query, uri)
-    return df['table_name'].list
+    res = df['table_name'].to_list()
+    print("tables à migrer: %s" % res)
+    return res
 
 
 def run(
-        schema: str, url: str, dataset: str, mode: str, exclude: str,
+        schema: str, url: str, dataset: str, mode: str, exclude: str, tables: list,
         beam_options: Optional[PipelineOptions] = None,
         ) -> None:
     creds = url.split("?user=")
     uri = creds[0]
     username, password = creds[1].split("&password=")
-    tables = get_tables_list(schema, url, exclude)
+    
     with beam.Pipeline(options=beam_options) as pipeline:
         # tables = (pipeline | 'Create table list' >> ReadFromJdbc(
         #                             query=query,
@@ -160,12 +162,13 @@ if __name__ == "__main__":
                                        streaming=False, sdk_location="container")
     beam_options = pipeline_options.view_as(GoogleCloudOptions)
     #args = beam_options.view_as(MyOptions)
-
+    tables = get_tables_list(args.schema, args.jdbc_url, args.exclude)
     run(
         schema=args.schema,
         url=args.jdbc_url,
         dataset=args.dataset,
         mode=args.mode,
         exclude=args.exclude,
+        tables=tables,
         beam_options=beam_options,
     ).waituntilfinish() 
