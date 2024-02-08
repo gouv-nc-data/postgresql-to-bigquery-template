@@ -62,6 +62,13 @@ def query_factory(schema: str, exclude: str = None) -> str:
     return query
 
 
+def get_tables_list(schema: str, uri: str, exclude: str = None) -> list:
+    import polars as pl
+    query = query_factory(schema, exclude)
+    df = pl.read_database(query, uri)
+    return df['table_name'].list
+
+
 def run(
         schema: str, url: str, dataset: str, mode: str, exclude: str,
         beam_options: Optional[PipelineOptions] = None,
@@ -69,24 +76,24 @@ def run(
     creds = url.split("?user=")
     uri = creds[0]
     username, password = creds[1].split("&password=")
-    query = query_factory(schema, exclude)
-    print(query)
+    tables = get_tables_list(schema, uri, exclude)
     with beam.Pipeline(options=beam_options) as pipeline:
-        tables = (pipeline | 'Create table list' >> ReadFromJdbc(
-                                    query=query,
-                                    driver_class_name='org.postgresql.Driver',
-                                    jdbc_url='jdbc:%s' % uri,
-                                    username=username,
-                                    password=password,
-                                    table_name=""
-                                )
-                            | beam.combiners.ToList()    
-                           #| "Read jdbc tables" >> beam.ParDo(TableReader(url))
-                           #| "Write to bigQuery" >> beam.ParDo(TableUploader(dataset))
-                  ) 
+        # tables = (pipeline | 'Create table list' >> ReadFromJdbc(
+        #                             query=query,
+        #                             driver_class_name='org.postgresql.Driver',
+        #                             jdbc_url='jdbc:%s' % uri,
+        #                             username=username,
+        #                             password=password,
+        #                             table_name=""
+        #                         )
+        #                     | beam.combiners.ToList()    
+        #                    #| "Read jdbc tables" >> beam.ParDo(TableReader(url))
+        #                    #| "Write to bigQuery" >> beam.ParDo(TableUploader(dataset))
+        #           ) 
         res = [
             (
-                tables | 'ReadTable' >> ReadFromJdbc(
+                pipeline | beam.Create(tables)
+                         | 'ReadTable' >> ReadFromJdbc(
                                     query="select * from %s " % table,
                                     driver_class_name='org.postgresql.Driver',
                                     jdbc_url='jdbc:%s' % uri,
